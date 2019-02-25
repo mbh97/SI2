@@ -44,11 +44,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import ssii2.visa.*;
-import ssii2.visa.dao.VisaDAO;
+
 
 import ssii2.visa.VisaDAOWSService; // Stub generado automáticamente
 import ssii2.visa.VisaDAOWS; // Stub generado automáticamente
 import javax.xml.ws.WebServiceRef;
+
+import javax.xml.ws.BindingProvider;
 
 /**
  *
@@ -144,6 +146,7 @@ private void printAddresses(HttpServletRequest request, HttpServletResponse resp
         TarjetaBean tarjeta = creaTarjeta(request);            
         ValidadorTarjeta val = new ValidadorTarjeta();                        
         PagoBean pago = null; 
+        VisaDAOWS dao = null;
         
         // printAddresses(request,response);
         if (! val.esValida(tarjeta)) {            
@@ -151,26 +154,30 @@ private void printAddresses(HttpServletRequest request, HttpServletResponse resp
             reenvia("/formdatosvisa.jsp", request, response);
             return;
         }
-        VisaDAOWSService service = new VisaDAOWSService();
-		VisaDAOWS dao = service.getVisaDAOWSPort();
-		HttpSession sesion = request.getSession(false);
+        try{
+            VisaDAOWSService service = new VisaDAOWSService();
+            dao = service.getVisaDAOWSPort();
+
+            BindingProvider bp = (BindingProvider) dao;
+            bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, getServletContext().getInitParameter("webmaster"));
+        }
+        catch(Exception e){
+            enviaError(e, request, response);
+            return;
+        }
+
+        HttpSession sesion = request.getSession(false);
 		if (sesion != null) {
 			pago = (PagoBean) sesion.getAttribute(ComienzaPago.ATTR_PAGO);
 		}
 		if (pago == null) {
 			pago = creaPago(request);
 			boolean isdebug = Boolean.valueOf(request.getParameter("debug"));
-			try{
-                //dao.setDebug(isdebug);
-                boolean isdirectConnection = Boolean.valueOf(request.getParameter("directConnection"));
-                dao.setDirectConnection(isdirectConnection);
-                boolean usePrepared = Boolean.valueOf(request.getParameter("usePrepared")); 
-                dao.setPrepared(usePrepared);
-            }
-            catch(Exception e){
-                enviaError(e, request, response);
-            }
-            
+			dao.setDebug(isdebug);
+            boolean isdirectConnection = Boolean.valueOf(request.getParameter("directConnection"));
+            dao.setDirectConnection(isdirectConnection);
+            boolean usePrepared = Boolean.valueOf(request.getParameter("usePrepared")); 
+            dao.setPrepared(usePrepared); 
         }
 
         // Almacenamos la tarjeta en el pago
@@ -180,8 +187,8 @@ private void printAddresses(HttpServletRequest request, HttpServletResponse resp
             enviaError(new Exception("Tarjeta no autorizada:"), request, response);
             return;
         }
-
-	if (! dao.realizaPago(pago)) {      
+        pago = dao.realizaPago(pago);
+	    if (pago == null) {      
             enviaError(new Exception("Pago incorrecto"), request, response);
             return;
         }

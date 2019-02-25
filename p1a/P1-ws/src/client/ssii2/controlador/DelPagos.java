@@ -1,7 +1,7 @@
 /**
  * Pr&aacute;ctricas de Sistemas Inform&aacute;ticos II
  * 
- * Esta servlet se encarga de visualizar los pagos para un determinado comercio. 
+ * Esta servlet se encarga de eliminar los pagos para un determinado comercio. 
  * Es necesario que en la llamada se incluya un valor correcto del par&aacute;metros:
  * <dl>
  *    <dt>Identificador del comercio</dt>
@@ -17,16 +17,16 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import ssii2.visa.PagoBean;
-import ssii2.visa.dao.VisaDAO;
 import ssii2.visa.VisaDAOWSService; // Stub generado automáticamente
 import ssii2.visa.VisaDAOWS; // Stub generado automáticamente
 import javax.xml.ws.WebServiceRef;
+import javax.xml.ws.BindingProvider;
 
 /**
  *
  * @author phaya
  */
-public class GetPagos extends ServletRaiz {
+public class DelPagos extends ServletRaiz {
      
     /** 
      * Par&aacute;metro que indica el identificador de comercio
@@ -41,7 +41,7 @@ public class GetPagos extends ServletRaiz {
     /** 
      * Atribute que hace referencia a la lista de pagos
      */
-    public final static String ATTR_PAGOS = "pagos";
+    public final static String ATTR_BORRADOS = "borrados";
     
     /** 
     * Procesa una petici&oacute;n HTTP tanto <code>GET</code> como <code>POST</code>.
@@ -50,18 +50,32 @@ public class GetPagos extends ServletRaiz {
     */    
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {        
-        
-		VisaDAOWSService service = new VisaDAOWSService();
-        VisaDAOWS dao = service.getVisaDAOWSPort();
+        VisaDAOWS dao;
+		try{
+            VisaDAOWSService service = new VisaDAOWSService();
+            dao = service.getVisaDAOWSPort();
+
+            BindingProvider bp = (BindingProvider) dao;
+            bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, getServletContext().getInitParameter("webmaster"));
+        }
+        catch(Exception e){
+            enviaError(e, request, response);
+            return;
+        }
 		
 		/* Se recoge de la petici&oacute;n el par&aacute;metro idComercio*/  
 		String idComercio = request.getParameter(PARAM_ID_COMERCIO);
 		
 		/* Petici&oacute;n de los pagos para el comercio */
-		PagoBean[] pagos = dao.getPagos(idComercio).toArray();        
+		int ret = dao.delPagos(idComercio);        
 
-        request.setAttribute(ATTR_PAGOS, pagos);
-        reenvia("/listapagos.jsp", request, response);
+		if (ret != 0) {
+			request.setAttribute(ATTR_BORRADOS, ret);
+			reenvia("/borradook.jsp", request, response);
+		}
+		else {
+			reenvia("/borradoerror.jsp", request, response);
+		}	
         return;       
     }      
     
