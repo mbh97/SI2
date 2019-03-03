@@ -6,6 +6,8 @@
  */
 package ssii2.visa;
 
+import javax.ejb.EJBException;
+
 public class TarjetaBean {
     
     private String numero;
@@ -13,6 +15,7 @@ public class TarjetaBean {
     private String fechaEmision;
     private String fechaCaducidad;
     private String codigoVerificacion; /* CVV2 */
+    private double saldo;
 
     /**
      * Devuelve el titular de la tarjeta

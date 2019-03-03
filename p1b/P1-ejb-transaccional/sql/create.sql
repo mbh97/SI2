@@ -6,11 +6,12 @@ titular            varchar(128) not null,
 validaDesde        char(5) not null,
 validaHasta        char(5) not null,
 codigoVerificacion char(3) not null,
+saldo              double precision not null,
 PRIMARY KEY (numeroTarjeta)
 );
 
-INSERT INTO tarjeta(numeroTarjeta,titular,validaDesde,validaHasta,codigoVerificacion)
-VALUES ('1111 2222 3333 4444','Jose Garcia','11/09','11/20','123');
+INSERT INTO tarjeta(numeroTarjeta,titular,validaDesde,validaHasta,codigoVerificacion,saldo)
+VALUES ('1111 2222 3333 4444','Jose Garcia','11/09','11/20','123',1000.0);
 
 -- Tabla con pagos autorizados
 -- Siempre vienen precedidos por una transaccion existente
