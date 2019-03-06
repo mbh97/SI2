@@ -96,4 +96,13 @@ public class TarjetaBean {
     public void setCodigoVerificacion(String codigoVerificacion) {
         this.codigoVerificacion = codigoVerificacion;
     }
+
+    public double getSaldo() {
+        return saldo;
+    }
+
+    public void setSaldo(double saldo) {
+        this.saldo = saldo;
+    }
+
 }

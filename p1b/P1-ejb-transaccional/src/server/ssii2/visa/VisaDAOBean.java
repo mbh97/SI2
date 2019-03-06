@@ -252,33 +252,39 @@ public class VisaDAOBean extends DBTester implements VisaDAOLocal {
             /* TODO Usar prepared statement si
                isPrepared() == true */
             /**************************************************/
-            if (isPrepared() == true) {
 
-                //comprobamos sueldo
-                String select = SELECT_SUELDO_TRANSACCION_QRY;
-                errorLog(select);
-                pstmt = con.prepareStatement(select);
-                pstmt.setString(1, pago.getTarjeta().getNumero());
-                ret = false;
-                rs = pstmt.executeQuery();
-                if (rs.next()){
-                    double saldo = rs.getDouble("saldo");
-                    if (saldo < pago.getImporte()){
-                        pago.setIdTransaccion(null);
-                    }
-                    else{
-                        //actualizamos sueldo
-                        double nuevoSaldo = saldo-pago.getImporte();
-                        String update = UPDATE_SUELDO_TRANSACCION_QRY;
-                        errorLog(update);
-                        pstmt = con.prepareStatement(update);
-                        pstmt.setDouble(1, nuevoSaldo);
-                        pstmt.setString(2, pago.getTarjeta().getNumero());
-                        if (!pstmt.execute() && pstmt.getUpdateCount() == 1) {
-                            ret = true;
-                        }
+            //comprobamos sueldo
+            String select1 = SELECT_SUELDO_TRANSACCION_QRY;
+            errorLog(select1);
+            pstmt = con.prepareStatement(select1);
+            pstmt.setString(1, pago.getTarjeta().getNumero());
+            ret = false;
+            rs = pstmt.executeQuery();
+            if (rs.next()){
+                double saldo = rs.getDouble("saldo");
+                if (saldo < pago.getImporte()){
+                    pago.setIdTransaccion(null);
+                    return null;
+                }
+                else{
+                    //actualizamos sueldo
+                    double nuevoSaldo = saldo-pago.getImporte();
+                    String update = UPDATE_SUELDO_TRANSACCION_QRY;
+                    errorLog(update);
+                    pstmt = con.prepareStatement(update);
+                    pstmt.setDouble(1, nuevoSaldo);
+                    pstmt.setString(2, pago.getTarjeta().getNumero());
+                    if (!pstmt.execute() && pstmt.getUpdateCount() == 1) {
+                        ret = true;
                     }
                 }
+            }
+            else{
+                throw new EJBException("Algo ha ido mal");
+            }
+
+            if (isPrepared() == true) {
+
                 if(ret){
                     String insert  = INSERT_PAGOS_QRY;
                    errorLog(insert);
@@ -340,7 +346,6 @@ public class VisaDAOBean extends DBTester implements VisaDAOLocal {
         } catch (Exception e) {
             errorLog(e.toString());
             ret = false;
-            throw new EJBException("Algo ha ido mal");
         } finally {
             try {
                 if (rs != null) {
