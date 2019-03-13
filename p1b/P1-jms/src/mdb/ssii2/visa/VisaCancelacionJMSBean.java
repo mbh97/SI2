@@ -33,7 +33,7 @@ public class VisaCancelacionJMSBean extends DBTester implements MessageListener 
   private MessageDrivenContext mdc;
 
   private static final String UPDATE_CANCELA_QRY = "update pago set codRespuesta=999 where idAutorizacion=?";
-  private static final String UPDATE_SALDO_QRY = "update tarjeta set saldo=? where numeroTarjeta=?";
+  private static final String UPDATE_SALDO_QRY = "update tarjeta set saldo = saldo + pago.importe from pago where pago.numeroTarjeta = tarjeta.numeroTarjeta and pago.idautorizacion = ?";
    // TODO : Definir UPDATE sobre la tabla pagos para poner
    // codRespuesta a 999 dado un código de autorización
 
@@ -74,7 +74,7 @@ public class VisaCancelacionJMSBean extends DBTester implements MessageListener 
             pstmt.setInt(1, id);
             pstmt.execute();
 
-            String saldo = UPDATE_CANCELA_QRY;
+            String saldo = UPDATE_SALDO_QRY;
             pstmt = con.prepareStatement(saldo);
             pstmt.setInt(1, id);
             pstmt.execute();
