@@ -87,7 +87,7 @@ ant limpiar-todo
     <!-- TODO - Implementar llamada wsimport -->
     <exec executable="wsimport">
     	<arg line=" -d ${build.client}/WEB-INF/classes"/>
-    	<arg line=" -p ${paquete}"/>
+    	<arg line=" -p ${paquete}.visa"/>
     	<arg line=" ${wsdl.url}"/>
     </exec>
     <delete file="${build}/${tmpvisaclientjar}" />
